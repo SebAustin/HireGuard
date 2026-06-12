@@ -90,11 +90,19 @@ def make_claude_adapter(*, custom_section: str, model: str | None = None, **kwar
     )
 
 
-def make_codex_adapter(*, custom_section: str | None = None, **kwargs: Any):
-    """CodexAdapter (via CodexAdapterConfig)."""
+def make_codex_adapter(*, custom_section: str = "", model: str | None = None, **kwargs: Any):
+    """CodexAdapter for @Counsel (via CodexAdapterConfig).
+
+    `custom_section` is the role prompt. `cwd` is set to the project root so the
+    agent's filesystem tools see workspace/notes when writing audit.md.
+    """
     from band.adapters import CodexAdapter, CodexAdapterConfig
 
-    config = CodexAdapterConfig()  # tune in Phase 1 once Codex creds are confirmed
+    config = CodexAdapterConfig(
+        custom_section=custom_section,
+        model=model,
+        cwd=str(PROJECT_ROOT),
+    )
     return CodexAdapter(config=config, **kwargs)
 
 
@@ -112,11 +120,40 @@ def make_crewai_adapter(
     return CrewAIAdapter(model=model, role=role, goal=goal, backstory=backstory, **kwargs)
 
 
-def make_langgraph_adapter(*, graph: Any, **kwargs: Any):
-    """LangGraphAdapter. Requires `uv add band-sdk[langgraph]`."""
+def make_langgraph_adapter(*, custom_section: str, llm: Any = None, additional_tools=None, **kwargs: Any):
+    """LangGraphAdapter for @PolicyAgent. Requires `band-sdk[langgraph]`.
+
+    Pass an `llm` (a LangChain chat model) + `custom_section` (role prompt); the
+    adapter builds a default tool-using graph and injects the Band tools plus any
+    `additional_tools` (our workspace/ruleset tools). If `llm` is None, builds a
+    ChatOpenAI pointed at the AI/ML API.
+    """
     from band.adapters import LangGraphAdapter
 
-    return LangGraphAdapter(graph, **kwargs)
+    if llm is None:
+        llm = make_aiml_langchain_llm()
+    return LangGraphAdapter(
+        llm=llm,
+        custom_section=custom_section,
+        additional_tools=additional_tools,
+        **kwargs,
+    )
+
+
+def make_aiml_langchain_llm(model: str | None = None):
+    """A LangChain ChatOpenAI bound to the AI/ML API (OpenAI-compatible).
+
+    Note the model-id handling: litellm/LangChain send the model string as-is to
+    the base URL, so for AI/ML API we use the full `openai/<model>` id.
+    """
+    from langchain_openai import ChatOpenAI
+
+    return ChatOpenAI(
+        model=model or os.environ.get("AIML_MODEL", "openai/gpt-4.1"),
+        base_url=os.environ.get("AIML_BASE_URL", "https://api.aimlapi.com/v1"),
+        api_key=os.environ.get("AIML_API_KEY", "missing"),
+        temperature=0.2,
+    )
 
 
 # --- agent construction ------------------------------------------------------

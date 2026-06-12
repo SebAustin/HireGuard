@@ -5,8 +5,10 @@ description = "HireGuard — multi-agent hiring-compliance auditor (Band + AI/ML
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "band-sdk[claude-sdk,codex]>=1.0.0",
+    "band-sdk[claude-sdk,codex,crewai,langgraph]>=1.0.0",
+    "langchain-openai>=1.3.0",
     "openai>=2.41.1",
+    "python-dotenv>=1.2.2",
 ]
 
 [dependency-groups]

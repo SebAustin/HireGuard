@@ -195,7 +195,39 @@ Result: ⏳ PENDING (no key yet). Record working model id here once confirmed: `
 
 ---
 
+## 3b. Cross-framework decision: CONFIRMED + extras verified
+
+Operator chose **cross-framework** (2026-06-12). Extras installed and both adapters
+verified to import + construct:
+```bash
+uv add "band-sdk[claude-sdk,codex,langgraph,crewai]"
+```
+- `CrewAIAdapter(model=..., role=, goal=, backstory=, custom_section=, additional_tools=)`
+  — `system_prompt` is DEPRECATED; use `custom_section`/`backstory`.
+- `LangGraphAdapter(llm=, custom_section=, additional_tools=, graph_factory=, ...)`
+  — pass an `llm` (LangChain chat model) + `custom_section`; adapter builds the default
+  tool-using graph and injects Band tools + `additional_tools`.
+- `CodexAdapterConfig(custom_section=, system_prompt=, cwd=, model=, approval_mode=, ...)`
+  — Codex also supports the human-approval gate.
+
+Custom tools (`band.runtime.custom_tools.CustomToolDef = tuple[PydanticModel, callable]`)
+give the LangGraph/CrewAI agents file + scoring access (they lack native FS tools):
+`hireguard/tools.py` → `READ_NOTE / WRITE_NOTE / APPEND_NOTE / GET_RULESET / SCORE_EXPOSURE`.
+
+### ⚠️ Known integration risk — CrewAI/litellm → AI/ML API model id
+CrewAI routes LLM calls through **litellm**, which strips the `openai/` provider prefix
+before sending to the base URL. AI/ML API expects the FULL `openai/<model>` as the model id.
+If `@RiskScorer`'s CrewAI driver LLM 400s on model id, the litellm fix is to double-prefix
+(`openai/openai/gpt-4.1`) so litellm forwards `openai/gpt-4.1`. **Mitigated structurally:**
+the load-bearing scoring runs through `tools.SCORE_EXPOSURE_TOOL` → `aiml_client.score()`
+(plain OpenAI SDK, correct model id), so the AI/ML API call is guaranteed regardless of the
+CrewAI driver's provider. Confirm exact model id once `AIML_API_KEY` is live.
+
 ## 4. Smoke test status
 
 - [x] `band-sdk` installs, imports resolve, adapter signatures introspected.
+- [x] LangGraph + CrewAI extras install; all 4 adapters construct with role prompts + tools.
+- [x] `run_demo.py --check` preflight works; `uv run pytest -q` → 11 passed (offline).
 - [ ] One agent connects to a live Band room and posts one message — **blocked on credentials.**
+- [ ] AI/ML API proof-of-life (`aiml_client.ping()`) — **blocked on AIML_API_KEY.**
+- [ ] Full 4-agent chain runs green on `acme_se_role` (the `demo-green` tag) — **blocked on credentials.**
