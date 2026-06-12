@@ -1,0 +1,19 @@
+[project]
+name = "hireguard"
+version = "0.1.0"
+description = "HireGuard — multi-agent hiring-compliance auditor (Band + AI/ML API)"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "band-sdk[claude-sdk,codex]>=1.0.0",
+    "openai>=2.41.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]

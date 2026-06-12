@@ -1,0 +1,19 @@
+# Copy to agent_config.yaml (gitignored) and fill from the band.ai dashboard.
+# Each agent must be created as a REMOTE agent on app.band.ai before use.
+# Keyed format — loaded via Agent.from_config("intake", adapter=...).
+
+intake:
+  agent_id: "00000000-0000-0000-0000-000000000000"
+  api_key: "band_sk_..."
+
+policy:
+  agent_id: "00000000-0000-0000-0000-000000000000"
+  api_key: "band_sk_..."
+
+risk:
+  agent_id: "00000000-0000-0000-0000-000000000000"
+  api_key: "band_sk_..."
+
+counsel:
+  agent_id: "00000000-0000-0000-0000-000000000000"
+  api_key: "band_sk_..."
