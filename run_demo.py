@@ -5,8 +5,8 @@ Usage:
     uv run python run_demo.py --sample acme_se_role   # full live run (needs credentials)
 
 The four agents collaborate THROUGH the Band room:
-    @Intake (Claude SDK) -> @PolicyAgent (LangGraph) -> @RiskScorer (CrewAI/AI/ML API)
-    -> @Counsel (Codex) -> audit.md + human sign-off, with a visible re-loop.
+    @Intake (LangGraph/AI/ML) -> @PolicyAgent (LangGraph/AI/ML) -> @RiskScorer (CrewAI/AI/ML)
+    -> @Councel (CrewAI/AI/ML) -> audit.md + human sign-off, with a visible re-loop.
 """
 
 from __future__ import annotations
@@ -14,11 +14,18 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import logging
 import os
 import sys
 from pathlib import Path
 
 from dotenv import load_dotenv
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+    stream=sys.stderr,
+)
 
 ROOT = Path(__file__).resolve().parent
 SAMPLES_DIR = ROOT / "hireguard" / "samples"
@@ -100,9 +107,16 @@ async def _run(sample: str) -> None:
     print(f"4 agents connected. Triggering audit of {sample_path} ...")
 
     owner = os.environ.get("BAND_OWNER_HANDLE", "@owner").lstrip("@")
+
+    # band-trigger requires agent auth; use policy agent's key so intake is visible as a peer.
+    import yaml
+    cfg = yaml.safe_load(CONFIG_PATH.read_text()) or {}
+    intake_key = cfg.get("policy", {}).get("api_key")
+
     chatroom = band_client.trigger_room(
         target_handle=f"@{owner}/intake",
         message=f"Audit the hiring packet in {sample_path}. Begin by extracting facts.",
+        api_key=intake_key,
     )
     print(f"Room triggered: {chatroom}\nWatch the room; Ctrl+C to stop.")
 

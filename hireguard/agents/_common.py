@@ -3,14 +3,17 @@
 from __future__ import annotations
 
 import asyncio
+import os
 from pathlib import Path
 
 PROMPTS_DIR = Path(__file__).resolve().parent.parent / "prompts"
 
 
 def load_prompt(name: str) -> str:
-    """Load a role prompt (persistent behavior + handoff protocol)."""
-    return (PROMPTS_DIR / f"{name}.md").read_text(encoding="utf-8")
+    """Load a role prompt, substituting {OWNER} with the Band owner handle."""
+    text = (PROMPTS_DIR / f"{name}.md").read_text(encoding="utf-8")
+    owner = os.environ.get("BAND_OWNER_HANDLE", "@owner").lstrip("@")
+    return text.replace("{OWNER}", owner)
 
 
 def run_standalone(build_fn) -> None:

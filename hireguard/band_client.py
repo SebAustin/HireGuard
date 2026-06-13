@@ -14,6 +14,7 @@ from __future__ import annotations
 import asyncio
 import os
 import subprocess
+import sys
 import time
 from pathlib import Path
 from typing import Any
@@ -120,22 +121,66 @@ def make_crewai_adapter(
     return CrewAIAdapter(model=model, role=role, goal=goal, backstory=backstory, **kwargs)
 
 
-def make_langgraph_adapter(*, custom_section: str, llm: Any = None, additional_tools=None, **kwargs: Any):
-    """LangGraphAdapter for @PolicyAgent. Requires `band-sdk[langgraph]`.
+def _to_langchain_tool(tool_def: Any):
+    """Convert a band-sdk ``(PydanticModel, callable)`` tuple to a LangChain StructuredTool.
 
-    Pass an `llm` (a LangChain chat model) + `custom_section` (role prompt); the
+    LangGraph's ToolNode calls ``create_tool()`` on every element in the tools list
+    and rejects raw tuples. This wrapper bridges the two conventions:
+
+    * LangChain calls the tool via ``func(**kwargs)`` where kwargs match the model fields.
+    * band-sdk ``execute_custom_tool`` passes the validated model instance as a single
+      positional arg (or no args for 0-field models).
+
+    We convert here so the underlying callable receives the Pydantic instance, matching
+    what CrewAI's ``_make_custom_tools`` already does.
+    """
+    from langchain_core.tools import StructuredTool
+    from band.runtime.custom_tools import get_custom_tool_name
+
+    model_cls, fn = tool_def
+    name = get_custom_tool_name(model_cls)
+    description = model_cls.__doc__ or f"Execute {name}"
+    has_fields = bool(model_cls.model_fields)
+
+    def _run(**kwargs: Any) -> Any:
+        if has_fields:
+            return fn(model_cls(**kwargs))
+        return fn()
+
+    _run.__name__ = name
+    _run.__doc__ = description
+
+    return StructuredTool.from_function(
+        func=_run,
+        name=name,
+        description=description,
+        args_schema=model_cls,
+    )
+
+
+def make_langgraph_adapter(*, custom_section: str, llm: Any = None, additional_tools=None, **kwargs: Any):
+    """LangGraphAdapter. Requires ``band-sdk[langgraph]``.
+
+    Pass an ``llm`` (a LangChain chat model) + ``custom_section`` (role prompt); the
     adapter builds a default tool-using graph and injects the Band tools plus any
-    `additional_tools` (our workspace/ruleset tools). If `llm` is None, builds a
+    ``additional_tools`` (our workspace/ruleset tools). If ``llm`` is None, builds a
     ChatOpenAI pointed at the AI/ML API.
+
+    ``additional_tools`` may be raw ``(PydanticModel, callable)`` band-sdk tuples; they
+    are automatically converted to LangChain ``StructuredTool`` instances so LangGraph's
+    ``ToolNode`` can consume them without raising a TypeError.
     """
     from band.adapters import LangGraphAdapter
 
     if llm is None:
         llm = make_aiml_langchain_llm()
+
+    langchain_tools = [_to_langchain_tool(t) for t in (additional_tools or [])]
+
     return LangGraphAdapter(
         llm=llm,
         custom_section=custom_section,
-        additional_tools=additional_tools,
+        additional_tools=langchain_tools,
         **kwargs,
     )
 
@@ -181,9 +226,12 @@ def trigger_room(target_handle: str, message: str, *, api_key: str | None = None
     key = api_key or os.environ.get("BAND_API_KEY")
     if not key:
         raise RuntimeError("BAND_API_KEY (or api_key=) required to trigger a room.")
+    # Prefer the venv-local band-trigger so the caller doesn't need it in PATH.
+    venv_trigger = Path(sys.executable).parent / "band-trigger"
+    band_trigger_bin = str(venv_trigger) if venv_trigger.exists() else "band-trigger"
     result = subprocess.run(
         [
-            "band-trigger",
+            band_trigger_bin,
             "--api-key", key,
             "--target-handle", target_handle,
             "--message", message,

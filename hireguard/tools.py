@@ -1,9 +1,12 @@
-"""Custom tools given to the LangGraph (@PolicyAgent) and CrewAI (@RiskScorer)
-agents, which lack the native filesystem tools that the Claude SDK / Codex agents have.
+"""Custom tools given to LangGraph and CrewAI agents.
 
-A band-sdk custom tool is ``(PydanticInputModel, callable)``; the tool name derives
-from the model class name minus the ``Input`` suffix, lowercased, and the model's
-docstring becomes the tool description.
+band-sdk calling convention (``execute_custom_tool``):
+- 0-field model  → callable takes no args:   ``def fn() -> str``
+- N-field model  → callable takes the validated Pydantic instance as the sole
+                   positional arg: ``def fn(inp: MyInput) -> str``
+
+A band-sdk custom tool is ``(PydanticInputModel, callable)``; the tool name
+derives from the model class name minus ``Input``, lowercased.
 """
 
 from __future__ import annotations
@@ -25,10 +28,10 @@ class ReadNoteInput(BaseModel):
     name: str = Field(description="File name within workspace/notes, e.g. 'facts.md'")
 
 
-def _read_note(name: str) -> str:
-    if not band_client.note_exists(name):
-        return f"(note '{name}' does not exist yet)"
-    return band_client.read_note(name)
+def _read_note(inp: ReadNoteInput) -> str:
+    if not band_client.note_exists(inp.name):
+        return f"(note '{inp.name}' does not exist yet)"
+    return band_client.read_note(inp.name)
 
 
 READ_NOTE_TOOL = (ReadNoteInput, _read_note)
@@ -42,9 +45,9 @@ class WriteNoteInput(BaseModel):
     content: str = Field(description="Full Markdown content to write")
 
 
-def _write_note(name: str, content: str) -> str:
-    band_client.write_note(name, content)
-    return f"wrote {name} ({len(content)} chars)"
+def _write_note(inp: WriteNoteInput) -> str:
+    band_client.write_note(inp.name, inp.content)
+    return f"wrote {inp.name} ({len(inp.content)} chars)"
 
 
 WRITE_NOTE_TOOL = (WriteNoteInput, _write_note)
@@ -57,9 +60,9 @@ class AppendNoteInput(BaseModel):
     content: str = Field(description="Markdown to append")
 
 
-def _append_note(name: str, content: str) -> str:
-    band_client.append_note(name, content)
-    return f"appended to {name}"
+def _append_note(inp: AppendNoteInput) -> str:
+    band_client.append_note(inp.name, inp.content)
+    return f"appended to {inp.name}"
 
 
 APPEND_NOTE_TOOL = (AppendNoteInput, _append_note)
@@ -92,7 +95,7 @@ class ScoreExposureInput(BaseModel):
     jurisdiction: str = Field(description="Employer primary work location, e.g. 'San Francisco, CA'")
 
 
-def _score_exposure(rule_id: str, citation: str, evidence: str, jurisdiction: str) -> str:
+def _score_exposure(inp: ScoreExposureInput) -> str:
     """Returns a JSON string: {exposure_score, severity, likelihood, jurisdiction_attaches, rationale}."""
     system = (
         "You are a U.S. employment-law risk analyst. Score the legal exposure of a single "
@@ -102,14 +105,13 @@ def _score_exposure(rule_id: str, citation: str, evidence: str, jurisdiction: st
         '"rationale": "<one sentence>"}.'
     )
     user = (
-        f"Rule: {rule_id}\nCitation: {citation}\n"
-        f"Employer jurisdiction: {jurisdiction}\nEvidence: {evidence}\n\n"
+        f"Rule: {inp.rule_id}\nCitation: {inp.citation}\n"
+        f"Employer jurisdiction: {inp.jurisdiction}\nEvidence: {inp.evidence}\n\n"
         "Weigh statutory penalty/litigation exposure (severity), how clearly the evidence "
         "establishes a violation (likelihood), and whether this jurisdiction puts the "
         "employer squarely under the rule."
     )
     raw = aiml_client.score(system, user)
-    # Be tolerant of fenced output; surface raw on parse failure rather than crashing.
     text = raw.strip()
     if text.startswith("```"):
         text = text.strip("`")
@@ -125,6 +127,31 @@ def _score_exposure(rule_id: str, citation: str, evidence: str, jurisdiction: st
 SCORE_EXPOSURE_TOOL = (ScoreExposureInput, _score_exposure)
 
 
+# --- read any project file by relative path (for @Intake) -------------------
+class ReadPacketInput(BaseModel):
+    """Read a hiring packet JSON file and return its raw text.
+
+    Pass the path relative to the project root, e.g.
+    'hireguard/samples/acme_se_role.json'.
+    """
+
+    path: str = Field(
+        description="Path relative to the project root, e.g. 'hireguard/samples/acme_se_role.json'"
+    )
+
+
+def _read_packet(inp: ReadPacketInput) -> str:
+    full = band_client.PROJECT_ROOT / inp.path
+    if not full.exists():
+        return json.dumps({"error": f"File not found: {inp.path}"})
+    return full.read_text(encoding="utf-8")
+
+
+READ_PACKET_TOOL = (ReadPacketInput, _read_packet)
+
+
 # Tool bundles per agent
 POLICY_TOOLS = [GET_RULESET_TOOL, READ_NOTE_TOOL, APPEND_NOTE_TOOL]
 RISK_TOOLS = [READ_NOTE_TOOL, WRITE_NOTE_TOOL, SCORE_EXPOSURE_TOOL]
+INTAKE_TOOLS = [READ_PACKET_TOOL, WRITE_NOTE_TOOL]
+COUNSEL_TOOLS = [READ_NOTE_TOOL, WRITE_NOTE_TOOL, GET_RULESET_TOOL]
