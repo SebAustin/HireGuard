@@ -11,8 +11,22 @@ pay-transparency statutes) and returns a **defensible, cited audit memo**. The w
 by **four specialized AI agents that collaborate live inside a [Band](https://band.ai) room**,
 spanning two agent frameworks and routing their reasoning through the **AI/ML API**.
 
+🚀 **Live demo:** _Streamlit showcase_ — [`streamlit_app.py`](streamlit_app.py) ·
 🎬 **Demo video:** [`submission/explainer_narrated.mp4`](submission/explainer_narrated.mp4) ·
 🖼️ **Cover / deck:** [`submission/`](submission/)
+
+### Try the demo
+
+An interactive showcase (no credentials — runs offline) lets you pick a sample packet,
+watch the four agents hand off in the Band room, and read the cited audit memo:
+
+```bash
+uv run streamlit run streamlit_app.py     # → http://localhost:8501
+```
+
+Or deploy it free on [Streamlit Community Cloud](https://share.streamlit.io): point it at this
+repo, main file `streamlit_app.py`. The full live pipeline (four agents on Band) runs via
+`run_demo.py` — see [Quickstart](#quickstart).
 
 ---
 
