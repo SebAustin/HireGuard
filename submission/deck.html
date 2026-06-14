@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0A0E1A; --panel:#141B30; --panel-2:#192238;
+    --line:rgba(148,163,184,.14); --line-2:rgba(148,163,184,.26);
+    --text:#F1F5F9; --muted:#9AA8BE; --faint:#64748B;
+    --teal:#5EEAD4; --indigo:#8B93F8; --gold:#E8C16B;
+    --crit:#FB6B6B; --risk:#F7B25C; --gap:#5FA8FB; --clear:#4ADE80;
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    --display:'Space Grotesk',-apple-system,sans-serif;
+    --mono:'JetBrains Mono',ui-monospace,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  @page{size:1280px 720px;margin:0;}
+  body{font-family:var(--sans);color:var(--text);background:var(--ink);}
+  .slide{width:1280px;height:720px;position:relative;overflow:hidden;
+    background:linear-gradient(180deg,#0A0E1A 0%,#0B1020 100%);}
+  .slide + .slide{page-break-before:always;}
+  .glow-tr{position:absolute;inset:0;background:radial-gradient(900px 560px at 86% -10%,rgba(94,234,212,.14),transparent 60%);}
+  .glow-bl{position:absolute;inset:0;background:radial-gradient(820px 520px at 6% 116%,rgba(139,147,248,.13),transparent 58%);}
+  .grid{position:absolute;inset:0;background-image:linear-gradient(rgba(148,163,184,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,.045) 1px,transparent 1px);background-size:48px 48px;mask-image:radial-gradient(900px 620px at 50% 40%,#000 32%,transparent 82%);}
+  .pad{position:relative;height:100%;padding:64px 72px;display:flex;flex-direction:column;}
+
+  .chrome{position:absolute;top:34px;left:72px;right:72px;display:flex;justify-content:space-between;align-items:center;z-index:5;}
+  .mark{display:flex;align-items:center;gap:10px;}
+  .mark svg{width:24px;height:26px;}
+  .mark .w{font-family:var(--display);font-weight:600;font-size:18px;letter-spacing:-.3px;}
+  .mark .w b{color:var(--teal);}
+  .sec{font-size:12px;color:var(--faint);letter-spacing:.16em;text-transform:uppercase;}
+
+  .pageno{position:absolute;bottom:34px;right:72px;font-size:13px;color:var(--faint);font-family:var(--mono);z-index:5;}
+
+  .eyebrow{font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--teal);font-weight:600;
+    margin-bottom:18px;display:flex;align-items:center;gap:10px;}
+  .eyebrow::before{content:"";width:28px;height:2px;background:var(--teal);display:inline-block;}
+  h1{font-family:var(--display);font-weight:600;letter-spacing:-1px;line-height:1.06;}
+  h2{font-family:var(--display);font-weight:600;font-size:42px;letter-spacing:-.6px;line-height:1.08;}
+  .lead{color:var(--muted);font-size:20px;line-height:1.55;}
+  .lead b{color:var(--text);font-weight:500;}
+  .hl{color:var(--teal);}
+
+  .center{flex:1;display:flex;flex-direction:column;justify-content:center;}
+
+  /* title slide */
+  .t-brand{display:flex;align-items:center;gap:16px;margin-bottom:34px;}
+  .t-brand svg{width:54px;height:58px;}
+  .t-brand .w{font-family:var(--display);font-weight:700;font-size:42px;letter-spacing:-.8px;}
+  .t-brand .w b{color:var(--teal);}
+  .t-title{font-size:66px;}
+  .t-sub{margin-top:26px;font-size:22px;max-width:840px;}
+  .t-meta{margin-top:48px;display:flex;gap:12px;flex-wrap:wrap;}
+  .pill{font-size:14px;color:var(--muted);border:1px solid var(--line-2);border-radius:999px;padding:9px 17px;background:rgba(20,27,48,.5);}
+  .pill b{color:var(--teal);font-weight:600;}
+
+  /* stat row */
+  .stats{display:flex;gap:22px;margin-top:42px;}
+  .stat{flex:1;border:1px solid var(--line);border-radius:16px;padding:26px 28px;background:rgba(20,27,48,.55);}
+  .stat .n{font-family:var(--display);font-weight:700;font-size:46px;letter-spacing:-1px;}
+  .stat .l{margin-top:8px;color:var(--muted);font-size:15px;line-height:1.4;}
+  .c-teal{color:var(--teal);} .c-gold{color:var(--gold);} .c-crit{color:var(--crit);} .c-indigo{color:var(--indigo);}
+
+  /* io row */
+  .io{display:flex;align-items:stretch;gap:24px;margin-top:40px;}
+  .iocard{flex:1;border:1px solid var(--line);border-radius:16px;background:rgba(20,27,48,.55);padding:26px 28px;}
+  .iocard .cap{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:14px;}
+  .iocard ul{list-style:none;display:flex;flex-direction:column;gap:11px;}
+  .iocard li{font-size:16px;color:var(--text);display:flex;align-items:center;gap:11px;}
+  .iocard li::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--teal);flex:none;}
+  .iocard.out li::before{background:var(--gold);}
+  .ioarrow{align-self:center;font-family:var(--display);color:var(--teal);font-size:34px;flex:none;}
+
+  /* pipeline (slide 4) */
+  .pflow{display:flex;align-items:stretch;gap:0;margin-top:30px;}
+  .pcol{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;}
+  .pcard{width:100%;border:1px solid var(--line-2);border-radius:16px;background:linear-gradient(180deg,rgba(20,27,48,.92),rgba(15,20,36,.92));padding:22px 16px;min-height:206px;display:flex;flex-direction:column;align-items:center;}
+  .pcard . icon{}
+  .pdot{width:13px;height:13px;border-radius:50%;margin-bottom:14px;box-shadow:0 0 14px currentColor;}
+  .pcard .pn{font-family:var(--display);font-weight:600;font-size:21px;}
+  .pcard .pf{font-size:11px;color:var(--faint);font-family:var(--mono);margin-top:5px;letter-spacing:.02em;}
+  .pcard .pd{font-size:14px;color:var(--muted);margin-top:13px;line-height:1.45;}
+  .parr{width:54px;display:flex;align-items:center;justify-content:center;color:var(--faint);font-size:26px;flex:none;}
+  .pfile{margin-top:13px;font-family:var(--mono);font-size:12px;color:var(--teal);border:1px solid rgba(94,234,212,.3);background:rgba(94,234,212,.08);border-radius:7px;padding:5px 10px;}
+
+  /* two-col generic */
+  .cols{display:flex;gap:30px;margin-top:36px;flex:1;}
+  .col{flex:1;}
+  .feat{border:1px solid var(--line);border-radius:14px;background:rgba(20,27,48,.5);padding:22px 24px;margin-bottom:16px;}
+  .feat .ft{font-family:var(--display);font-weight:600;font-size:18px;margin-bottom:8px;display:flex;align-items:center;gap:10px;}
+  .feat .ft .b{width:9px;height:9px;border-radius:50%;flex:none;}
+  .feat .fd{color:var(--muted);font-size:15px;line-height:1.5;}
+
+  /* code/terminal block */
+  .term{border:1px solid var(--line-2);border-radius:14px;overflow:hidden;background:#070A14;}
+  .termbar{display:flex;align-items:center;gap:8px;padding:13px 16px;border-bottom:1px solid var(--line);background:rgba(20,27,48,.6);}
+  .termbar .d{width:11px;height:11px;border-radius:50%;}
+  .termbar .fn{margin-left:10px;font-family:var(--mono);font-size:13px;color:var(--muted);}
+  .termbody{padding:20px 22px;font-family:var(--mono);font-size:14px;line-height:1.7;color:#CBD5E1;}
+  .termbody .k{color:var(--indigo);} .termbody .s{color:var(--teal);} .termbody .c{color:var(--faint);} .termbody .g{color:var(--gold);}
+
+  /* memo (slide 8) */
+  .memo{border:1px solid var(--line-2);border-radius:16px;background:#0C1120;overflow:hidden;display:flex;flex-direction:column;}
+  .memohead{padding:20px 26px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;background:rgba(20,27,48,.5);}
+  .memohead .mt{font-family:var(--display);font-weight:600;font-size:19px;}
+  .memohead .mb{font-family:var(--display);font-weight:700;font-size:16px;color:var(--crit);border:1px solid rgba(251,107,107,.4);background:rgba(251,107,107,.12);border-radius:999px;padding:7px 16px;}
+  .findings{padding:22px 26px;display:flex;flex-direction:column;gap:13px;}
+  .find{display:flex;align-items:center;gap:14px;}
+  .find .sev{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;width:74px;text-align:center;padding:5px 0;border-radius:7px;flex:none;}
+  .sev.cr{color:var(--crit);background:rgba(251,107,107,.13);border:1px solid rgba(251,107,107,.35);}
+  .sev.rk{color:var(--risk);background:rgba(247,178,92,.13);border:1px solid rgba(247,178,92,.35);}
+  .sev.gp{color:var(--gap);background:rgba(95,168,251,.13);border:1px solid rgba(95,168,251,.35);}
+  .find .rid{font-family:var(--mono);font-size:13px;color:var(--text);width:200px;flex:none;}
+  .find .ev{font-size:14px;color:var(--muted);}
+
+  .closing{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;height:100%;}
+  .closing svg{width:64px;height:68px;margin-bottom:26px;}
+  .closing h1{font-size:54px;}
+  .closing .cs{margin-top:20px;font-size:20px;color:var(--muted);max-width:760px;}
+  .stkrow{margin-top:40px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center;max-width:880px;}
+</style>
+</head>
+<body>
+
+<!-- 1 — TITLE -->
+<section class="slide">
+  <div class="glow-tr"></div><div class="glow-bl"></div><div class="grid"></div>
+  <div class="pad center">
+    <div class="t-brand">
+      <svg viewBox="0 0 44 48" fill="none"><path d="M22 2 L40 9 V24 C40 36 32 43 22 46 C12 43 4 36 4 24 V9 Z" fill="rgba(94,234,212,.10)" stroke="#5EEAD4" stroke-width="2"/><path d="M14 24 l6 6 l11 -13" stroke="#5EEAD4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div class="w">Hire<b>Guard</b></div>
+    </div>
+    <h1 class="t-title">Hiring compliance,<br>audited by a <span class="hl">team of AI agents</span>.</h1>
+    <p class="t-sub lead">Four specialized agents collaborate inside a <b>Band room</b> to flag EEOC and pay-transparency risk — then hand off, score, and sign a defensible, cited audit memo.</p>
+    <div class="t-meta">
+      <span class="pill"><b>Band of Agents</b> Hackathon</span>
+      <span class="pill">Track 3 — Regulated &amp; High-Stakes</span>
+      <span class="pill">Main Prize · <b>Best Use of AI/ML API</b></span>
+    </div>
+  </div>
+  <div class="pageno">01 / 09</div>
+</section>
+
+<!-- 2 — PROBLEM -->
+<section class="slide">
+  <div class="glow-tr"></div><div class="grid"></div>
+  <div class="chrome"><div class="mark"><svg viewBox="0 0 44 48" fill="none"><path d="M22 2 L40 9 V24 C40 36 32 43 22 46 C12 43 4 36 4 24 V9 Z" fill="rgba(94,234,212,.10)" stroke="#5EEAD4" stroke-width="2"/><path d="M14 24 l6 6 l11 -13" stroke="#5EEAD4" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="w">Hire<b>Guard</b></span></div><div class="sec">The problem</div></div>
+  <div class="pad center">
+    <div class="eyebrow">Why this matters</div>
+    <h2>Hiring language is a legal minefield —<br>and nobody reviews every posting.</h2>
+    <p class="lead" style="margin-top:22px;max-width:880px;">A single job post can violate federal anti-discrimination law <b>and</b> a patchwork of state pay-transparency statutes at once. Review is manual, slow, and inconsistent.</p>
+    <div class="stats">
+      <div class="stat"><div class="n c-crit">$440M+</div><div class="l">EEOC monetary recovery from employers in a single year</div></div>
+      <div class="stat"><div class="n c-gold">5+ states</div><div class="l">Pay-transparency laws with distinct posting rules (CA, NY, CO, WA, MA)</div></div>
+      <div class="stat"><div class="n c-teal">Every req</div><div class="l">Needs an audit — but legal can't review them all by hand</div></div>
+    </div>
+  </div>
+  <div class="pageno">02 / 09</div>
+</section>
+
+<!-- 3 — WHAT IT DOES -->
+<section class="slide">
+  <div class="glow-bl"></div><div class="grid"></div>
+  <div class="chrome"><div class="mark"><svg viewBox="0 0 44 48" fill="none"><path d="M22 2 L40 9 V24 C40 36 32 43 22 46 C12 43 4 36 4 24 V9 Z" fill="rgba(94,234,212,.10)" stroke="#5EEAD4" stroke-width="2"/><path d="M14 24 l6 6 l11 -13" stroke="#5EEAD4" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="w">Hire<b>Guard</b></span></div><div class="sec">What it does</div></div>
+  <div class="pad center">
+    <div class="eyebrow">One command, one audit</div>
+    <h2>Feed in a hiring packet.<br>Get back a defensible memo.</h2>
+    <div class="io">
+      <div class="iocard"><div class="cap">Input — the hiring packet</div><ul><li>Job posting copy</li><li>Compensation band</li><li>Interview scorecard</li><li>Company size &amp; location</li></ul></div>
+      <div class="ioarrow">→</div>
+      <div class="iocard out"><div class="cap">Output — audit.md</div><ul><li>Findings by severity</li><li>Real statute citations</li><li>Quoted evidence</li><li>Human sign-off gate</li></ul></div>
+    </div>
+  </div>
+  <div class="pageno">03 / 09</div>
+</section>
+
+<!-- 4 — PIPELINE -->
+<section class="slide">
+  <div class="glow-tr"></div><div class="grid"></div>
+  <div class="chrome"><div class="mark"><svg viewBox="0 0 44 48" fill="none"><path d="M22 2 L40 9 V24 C40 36 32 43 22 46 C12 43 4 36 4 24 V9 Z" fill="rgba(94,234,212,.10)" stroke="#5EEAD4" stroke-width="2"/><path d="M14 24 l6 6 l11 -13" stroke="#5EEAD4" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="w">Hire<b>Guard</b></span></div><div class="sec">The 4-agent pipeline</div></div>
+  <div class="pad" style="justify-content:center;">
+    <div class="eyebrow">Four agents, two frameworks, one room</div>
+    <h2 style="font-size:38px;">Each agent owns one job and hands off the baton.</h2>
+    <div class="pflow">
+      <div class="pcol"><div class="pcard"><div class="pdot" style="background:var(--teal);color:var(--teal)"></div><div class="pn">@Intake</div><div class="pf">LangGraph</div><div class="pd">Reads the raw packet, extracts structured facts</div><div class="pfile">facts.md</div></div></div>
+      <div class="parr">→</div>
+      <div class="pcol"><div class="pcard"><div class="pdot" style="background:var(--indigo);color:var(--indigo)"></div><div class="pn">@PolicyAgent</div><div class="pf">LangGraph</div><div class="pd">Applies the ruleset, cites candidate violations</div><div class="pfile">+ findings</div></div></div>
+      <div class="parr">→</div>
+      <div class="pcol"><div class="pcard"><div class="pdot" style="background:var(--gold);color:var(--gold)"></div><div class="pn">@RiskScorer</div><div class="pf">CrewAI · AI/ML API</div><div class="pd">Scores legal exposure 0–100 per finding</div><div class="pfile">risk.md</div></div></div>
+      <div class="parr">→</div>
+      <div class="pcol"><div class="pcard"><div class="pdot" style="background:var(--clear);color:var(--clear)"></div><div class="pn">@Counsel</div><div class="pf">CrewAI</div><div class="pd">Validates, de-dupes, writes the final memo</div><div class="pfile">audit.md</div></div></div>
+    </div>
+  </div>
+  <div class="pageno">04 / 09</div>
+</section>
+
+<!-- 5 — HOW THEY COLLABORATE -->
+<section class="slide">
+  <div class="glow-bl"></div><div class="grid"></div>
+  <div class="chrome"><div class="mark"><svg viewBox="0 0 44 48" fill="none"><path d="M22 2 L40 9 V24 C40 36 32 43 22 46 C12 43 4 36 4 24 V9 Z" fill="rgba(94,234,212,.10)" stroke="#5EEAD4" stroke-width="2"/><path d="M14 24 l6 6 l11 -13" stroke="#5EEAD4" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="w">Hire<b>Guard</b></span></div><div class="sec">Collaboration on Band</div></div>
+  <div class="pad center">
+    <div class="eyebrow">Built on Band's convention</div>
+    <h2>Chat is for coordination.<br>Files are for content.</h2>
+    <div class="cols">
+      <div class="col">
+        <div class="feat"><div class="ft"><span class="b" style="background:var(--teal)"></span>Agents talk via @mentions</div><div class="fd">Each agent posts a short handoff in the room and @mentions the next. Only the mentioned agent wakes up — routing is explicit and auditable.</div></div>
+        <div class="feat"><div class="ft"><span class="b" style="background:var(--indigo)"></span>Content lives in shared notes</div><div class="fd">facts.md, risk.md and audit.md sit in a shared workspace. Chat stays lightweight; the artifacts carry the substance.</div></div>
+        <div class="feat"><div class="ft"><span class="b" style="background:var(--gold)"></span>Cross-framework, one protocol</div><div class="fd">LangGraph and CrewAI agents interoperate seamlessly — Band is the common bus between them.</div></div>
+      </div>
+      <div class="col">
+        <div class="term">
+          <div class="termbar"><span class="d" style="background:#FB6B6B"></span><span class="d" style="background:#F7B25C"></span><span class="d" style="background:#4ADE80"></span><span class="fn">band room · #hireguard-audit</span></div>
+          <div class="termbody">
+<span class="s">@Intake</span> facts.md ready — 1 packet extracted.<br>
+<span class="c">&nbsp;&nbsp;→ mentions <span class="g">@PolicyAgent</span></span><br><br>
+<span class="s">@PolicyAgent</span> 6 candidate findings posted.<br>
+<span class="c">&nbsp;&nbsp;→ mentions <span class="g">@RiskScorer</span></span><br><br>
+<span class="s">@RiskScorer</span> risk.md ready — verdict HIGH.<br>
+<span class="c">&nbsp;&nbsp;→ mentions <span class="g">@Counsel</span></span><br><br>
+<span class="s">@Counsel</span> audit complete — awaiting<br>&nbsp;&nbsp;human sign-off.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pageno">05 / 09</div>
+</section>
+
+<!-- 6 — AI/ML API LOAD-BEARING -->
+<section class="slide">
+  <div class="glow-tr"></div><div class="grid"></div>
+  <div class="chrome"><div class="mark"><svg viewBox="0 0 44 48" fill="none"><path d="M22 2 L40 9 V24 C40 36 32 43 22 46 C12 43 4 36 4 24 V9 Z" fill="rgba(94,234,212,.10)" stroke="#5EEAD4" stroke-width="2"/><path d="M14 24 l6 6 l11 -13" stroke="#5EEAD4" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="w">Hire<b>Guard</b></span></div><div class="sec">Best use of AI/ML API</div></div>
+  <div class="pad center">
+    <div class="eyebrow">The scoring call is load-bearing</div>
+    <h2>No finding gets a verdict<br>until the AI/ML API returns.</h2>
+    <div class="cols">
+      <div class="col" style="display:flex;flex-direction:column;justify-content:center;">
+        <p class="lead" style="margin-bottom:20px;">@RiskScorer sends every candidate finding to the <b>AI/ML API</b>, which weighs three dimensions and returns a structured exposure score.</p>
+        <div class="feat"><div class="ft"><span class="b" style="background:var(--crit)"></span>Severity</div><div class="fd">Statutory penalty &amp; litigation exposure</div></div>
+        <div class="feat"><div class="ft"><span class="b" style="background:var(--risk)"></span>Likelihood</div><div class="fd">How clearly the evidence establishes a violation</div></div>
+        <div class="feat"><div class="ft"><span class="b" style="background:var(--gap)"></span>Jurisdiction</div><div class="fd">Whether the rule actually attaches here</div></div>
+      </div>
+      <div class="col" style="display:flex;align-items:center;">
+        <div class="term" style="width:100%;">
+          <div class="termbar"><span class="d" style="background:#FB6B6B"></span><span class="d" style="background:#F7B25C"></span><span class="d" style="background:#4ADE80"></span><span class="fn">scoreexposure() → AI/ML API</span></div>
+          <div class="termbody">
+<span class="c"># PAYTRANS-CA-SB1162</span><br>
+{<br>
+&nbsp;&nbsp;<span class="k">"exposure_score"</span>: <span class="g">88</span>,<br>
+&nbsp;&nbsp;<span class="k">"severity"</span>: <span class="s">"severe"</span>,<br>
+&nbsp;&nbsp;<span class="k">"likelihood"</span>: <span class="s">"high"</span>,<br>
+&nbsp;&nbsp;<span class="k">"jurisdiction_attaches"</span>: <span class="g">true</span>,<br>
+&nbsp;&nbsp;<span class="k">"rationale"</span>: <span class="s">"CA employer,</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="s">15+ staff, no posted range"</span><br>
+}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pageno">06 / 09</div>
+</section>
+
+<!-- 7 — RE-LOOP -->
+<section class="slide">
+  <div class="glow-bl"></div><div class="grid"></div>
+  <div class="chrome"><div class="mark"><svg viewBox="0 0 44 48" fill="none"><path d="M22 2 L40 9 V24 C40 36 32 43 22 46 C12 43 4 36 4 24 V9 Z" fill="rgba(94,234,212,.10)" stroke="#5EEAD4" stroke-width="2"/><path d="M14 24 l6 6 l11 -13" stroke="#5EEAD4" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="w">Hire<b>Guard</b></span></div><div class="sec">Adversarial review</div></div>
+  <div class="pad center">
+    <div class="eyebrow">Agents check each other</div>
+    <h2>@Counsel can bounce a weak<br>finding back to @PolicyAgent.</h2>
+    <p class="lead" style="margin-top:22px;max-width:900px;">Before signing, @Counsel adversarially re-examines every Critical finding. If the evidence is thin or the jurisdiction doesn't clearly attach, it sends the finding <b>back into the room</b> for re-examination — a visible, defensible review loop rather than a single-pass rubber stamp.</p>
+    <div class="term" style="margin-top:30px;max-width:920px;">
+      <div class="termbar"><span class="d" style="background:#FB6B6B"></span><span class="d" style="background:#F7B25C"></span><span class="d" style="background:#4ADE80"></span><span class="fn">band room · the re-loop</span></div>
+      <div class="termbody">
+<span class="s">@Counsel</span> <span class="g">@PolicyAgent</span> please re-examine EEOC-CRIM-HISTORY —<br>
+&nbsp;&nbsp;evidence is thin, no blanket exclusion in the posting.<br>
+<span class="s">@PolicyAgent</span> agreed — downgrading to Suggestion. <span class="c">Re-scored.</span><br>
+<span class="s">@Counsel</span> finalized. Writing audit.md.
+      </div>
+    </div>
+  </div>
+  <div class="pageno">07 / 09</div>
+</section>
+
+<!-- 8 — RESULT -->
+<section class="slide">
+  <div class="glow-tr"></div><div class="grid"></div>
+  <div class="chrome"><div class="mark"><svg viewBox="0 0 44 48" fill="none"><path d="M22 2 L40 9 V24 C40 36 32 43 22 46 C12 43 4 36 4 24 V9 Z" fill="rgba(94,234,212,.10)" stroke="#5EEAD4" stroke-width="2"/><path d="M14 24 l6 6 l11 -13" stroke="#5EEAD4" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="w">Hire<b>Guard</b></span></div><div class="sec">Real output</div></div>
+  <div class="pad center">
+    <div class="eyebrow">audit.md — generated end-to-end</div>
+    <h2 style="font-size:38px;margin-bottom:24px;">The Acme demo packet → HIGH, six cited findings.</h2>
+    <div class="memo">
+      <div class="memohead"><div class="mt">HireGuard Compliance Audit — Acme Robotics, SE role</div><div class="mb">VERDICT: HIGH</div></div>
+      <div class="findings">
+        <div class="find"><span class="sev cr">Critical</span><span class="rid">PAYHIST-SALARY-BAN</span><span class="ev">Posting asks for the candidate's current salary</span></div>
+        <div class="find"><span class="sev cr">Critical</span><span class="rid">PAYTRANS-CA-SB1162</span><span class="ev">CA employer, 15+ staff, no posted salary range</span></div>
+        <div class="find"><span class="sev rk">Risk</span><span class="rid">EEOC-ADEA-AGE</span><span class="ev">"young, energetic, recent grad" age-proxy language</span></div>
+        <div class="find"><span class="sev rk">Risk</span><span class="rid">EEOC-NATL-ORIGIN</span><span class="ev">Requires a "native English speaker"</span></div>
+        <div class="find"><span class="sev rk">Risk</span><span class="rid">EEOC-ADA-DISABILITY</span><span class="ev">"must lift 40 lbs" with no accommodation note</span></div>
+        <div class="find"><span class="sev gp">Gap</span><span class="rid">EEOC-DISPARATE-SUBJECTIVE</span><span class="ev">"culture fit" scorecard criterion, unanchored</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="pageno">08 / 09</div>
+</section>
+
+<!-- 9 — CLOSE -->
+<section class="slide">
+  <div class="glow-tr"></div><div class="glow-bl"></div><div class="grid"></div>
+  <div class="pad">
+    <div class="closing">
+      <svg viewBox="0 0 44 48" fill="none"><path d="M22 2 L40 9 V24 C40 36 32 43 22 46 C12 43 4 36 4 24 V9 Z" fill="rgba(94,234,212,.10)" stroke="#5EEAD4" stroke-width="2"/><path d="M14 24 l6 6 l11 -13" stroke="#5EEAD4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <h1>Four agents. One defensible audit.</h1>
+      <p class="cs">A real, multi-framework agent team collaborating on Band — with the AI/ML API at the load-bearing core of every risk verdict.</p>
+      <div class="stkrow">
+        <span class="pill"><b>Band SDK</b> · room + @mention handoffs</span>
+        <span class="pill"><b>AI/ML API</b> · exposure scoring</span>
+        <span class="pill"><b>LangGraph</b> · Intake + Policy</span>
+        <span class="pill"><b>CrewAI</b> · Risk + Counsel</span>
+        <span class="pill">Python · uv · Pydantic</span>
+      </div>
+    </div>
+  </div>
+  <div class="pageno">09 / 09</div>
+</section>
+
+</body>
+</html>

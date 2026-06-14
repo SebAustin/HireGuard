@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0A0E1A; --ink-2:#0E1424; --panel:#141B30; --panel-2:#192238;
+    --line:rgba(148,163,184,.14); --line-2:rgba(148,163,184,.26);
+    --text:#F1F5F9; --muted:#9AA8BE; --faint:#64748B;
+    --teal:#5EEAD4; --indigo:#8B93F8; --gold:#E8C16B;
+    --crit:#FB6B6B; --risk:#F7B25C; --gap:#5FA8FB; --clear:#4ADE80;
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,'SF Pro Display',sans-serif;
+    --display:'Space Grotesk',-apple-system,'SF Pro Display',sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  html,body{width:1280px;height:720px;}
+  body{
+    font-family:var(--sans); color:var(--text); overflow:hidden;
+    background:
+      radial-gradient(1100px 620px at 82% -8%, rgba(94,234,212,.16), transparent 60%),
+      radial-gradient(900px 560px at 8% 118%, rgba(139,147,248,.16), transparent 58%),
+      linear-gradient(180deg,#0A0E1A 0%,#0B1020 100%);
+    position:relative;
+  }
+  .grid{position:absolute;inset:0;
+    background-image:linear-gradient(rgba(148,163,184,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,.05) 1px,transparent 1px);
+    background-size:48px 48px; mask-image:radial-gradient(900px 600px at 50% 35%,#000 30%,transparent 80%);}
+  .frame{position:relative;height:100%;padding:54px 64px;display:flex;flex-direction:column;}
+
+  .top{display:flex;justify-content:space-between;align-items:center;}
+  .brand{display:flex;align-items:center;gap:14px;}
+  .shield{width:42px;height:46px;flex:none;}
+  .wordmark{font-family:var(--display);font-weight:700;font-size:30px;letter-spacing:-.5px;}
+  .wordmark b{color:var(--teal);font-weight:700;}
+  .tag{font-size:13px;color:var(--muted);border:1px solid var(--line-2);border-radius:999px;
+    padding:8px 16px;letter-spacing:.04em;background:rgba(20,27,48,.5);}
+  .tag b{color:var(--teal);font-weight:600;}
+
+  .hero{flex:1;display:flex;flex-direction:column;justify-content:center;max-width:760px;}
+  .eyebrow{font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--teal);
+    font-weight:600;margin-bottom:20px;display:flex;align-items:center;gap:10px;}
+  .eyebrow::before{content:"";width:30px;height:2px;background:var(--teal);display:inline-block;}
+  h1{font-family:var(--display);font-weight:600;font-size:62px;line-height:1.04;letter-spacing:-1.4px;}
+  h1 .hl{color:var(--teal);}
+  .sub{margin-top:24px;font-size:20px;line-height:1.55;color:var(--muted);max-width:640px;}
+  .sub b{color:var(--text);font-weight:500;}
+
+  .pipe{position:absolute;right:64px;top:50%;transform:translateY(-46%);
+    width:312px;display:flex;flex-direction:column;gap:14px;}
+  .node{display:flex;align-items:center;gap:14px;padding:15px 17px;border-radius:14px;
+    background:linear-gradient(180deg,rgba(20,27,48,.92),rgba(15,20,36,.92));
+    border:1px solid var(--line-2);}
+  .node .dot{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:0 0 12px currentColor;}
+  .node .nm{font-family:var(--display);font-weight:600;font-size:16px;}
+  .node .role{font-size:12px;color:var(--faint);margin-top:1px;}
+  .node .fw{margin-left:auto;font-size:11px;color:var(--muted);border:1px solid var(--line);
+    border-radius:6px;padding:3px 7px;letter-spacing:.02em;}
+  .conn{height:13px;width:2px;background:linear-gradient(var(--line-2),transparent);margin-left:24px;}
+  .verdict{margin-top:6px;display:flex;align-items:center;gap:12px;padding:14px 17px;border-radius:14px;
+    background:rgba(251,107,107,.1);border:1px solid rgba(251,107,107,.4);}
+  .verdict .vt{font-size:12px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+  .verdict .vv{font-family:var(--display);font-weight:700;font-size:22px;color:var(--crit);margin-left:auto;}
+
+  .foot{display:flex;align-items:center;gap:10px;}
+  .stk{font-size:13px;color:var(--muted);border:1px solid var(--line);border-radius:8px;padding:8px 13px;
+    background:rgba(20,27,48,.4);}
+  .stk b{color:var(--text);font-weight:500;}
+  .spacer{flex:1;}
+  .crumb{font-size:13px;color:var(--faint);}
+</style>
+</head>
+<body>
+<div class="grid"></div>
+<div class="frame">
+  <div class="top">
+    <div class="brand">
+      <svg class="shield" viewBox="0 0 44 48" fill="none">
+        <path d="M22 2 L40 9 V24 C40 36 32 43 22 46 C12 43 4 36 4 24 V9 Z" fill="rgba(94,234,212,.10)" stroke="#5EEAD4" stroke-width="2"/>
+        <path d="M14 24 l6 6 l11 -13" stroke="#5EEAD4" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </svg>
+      <div class="wordmark">Hire<b>Guard</b></div>
+    </div>
+    <div class="tag">Band of Agents Hackathon · <b>Track 3 — Regulated &amp; High-Stakes</b></div>
+  </div>
+
+  <div class="hero">
+    <div class="eyebrow">Multi-agent compliance auditor</div>
+    <h1>Hiring compliance,<br>audited by a <span class="hl">team of AI agents</span>.</h1>
+    <p class="sub">Four specialized agents collaborate inside a <b>Band room</b> to flag EEOC and pay-transparency risk — then hand off, score, and sign a <b>defensible, cited audit memo</b>.</p>
+  </div>
+
+  <div class="pipe">
+    <div class="node"><span class="dot" style="color:var(--teal)"></span><div><div class="nm">@Intake</div><div class="role">Extracts the facts</div></div><span class="fw">LangGraph</span></div>
+    <div class="conn"></div>
+    <div class="node"><span class="dot" style="color:var(--indigo)"></span><div><div class="nm">@PolicyAgent</div><div class="role">Cites the violations</div></div><span class="fw">LangGraph</span></div>
+    <div class="conn"></div>
+    <div class="node"><span class="dot" style="color:var(--gold)"></span><div><div class="nm">@RiskScorer</div><div class="role">Scores via AI/ML API</div></div><span class="fw">CrewAI</span></div>
+    <div class="conn"></div>
+    <div class="node"><span class="dot" style="color:var(--clear)"></span><div><div class="nm">@Counsel</div><div class="role">Writes the memo</div></div><span class="fw">CrewAI</span></div>
+    <div class="verdict"><span class="vt">Audit verdict</span><span class="vv">HIGH · 6 findings</span></div>
+  </div>
+
+  <div class="foot">
+    <div class="stk"><b>Band SDK</b> · room + handoffs</div>
+    <div class="stk"><b>AI/ML API</b> · load-bearing scoring</div>
+    <div class="stk"><b>LangGraph</b> + <b>CrewAI</b></div>
+    <div class="spacer"></div>
+    <div class="crumb">EEOC · ADEA · Title VII · ADA · SB 1162 · LL 194-b</div>
+  </div>
+</div>
+</body>
+</html>

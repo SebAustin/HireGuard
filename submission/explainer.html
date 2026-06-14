@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>HireGuard — how it works</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0A0E1A; --panel:#141B30; --line:rgba(148,163,184,.16); --line-2:rgba(148,163,184,.3);
+    --text:#F1F5F9; --muted:#9AA8BE; --faint:#647892;
+    --teal:#5EEAD4; --indigo:#8B93F8; --gold:#E8C16B; --clear:#4ADE80;
+    --crit:#FB6B6B; --risk:#F7B25C; --gap:#5FA8FB;
+    --sans:'Inter',-apple-system,sans-serif; --display:'Space Grotesk',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{height:100%;}
+  body{font-family:var(--sans);color:var(--text);background:#06080F;
+    display:flex;align-items:center;justify-content:center;overflow:hidden;}
+  .stage{width:1280px;height:720px;position:relative;flex:none;overflow:hidden;
+    background:
+      radial-gradient(900px 560px at 84% -10%,rgba(94,234,212,.13),transparent 60%),
+      radial-gradient(820px 520px at 6% 116%,rgba(139,147,248,.13),transparent 58%),
+      linear-gradient(180deg,#0A0E1A,#0B1020);}
+  .grid{position:absolute;inset:0;background-image:linear-gradient(rgba(148,163,184,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,.05) 1px,transparent 1px);background-size:48px 48px;mask-image:radial-gradient(960px 640px at 50% 42%,#000 32%,transparent 84%);}
+
+  .hd{position:absolute;top:40px;left:56px;right:56px;display:flex;justify-content:space-between;align-items:center;}
+  .mark{display:flex;align-items:center;gap:12px;}
+  .mark svg{width:32px;height:34px;}
+  .mark .w{font-family:var(--display);font-weight:700;font-size:24px;letter-spacing:-.4px;}
+  .mark .w b{color:var(--teal);}
+  .live{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--muted);letter-spacing:.04em;
+    border:1px solid var(--line-2);border-radius:999px;padding:8px 16px;background:rgba(20,27,48,.5);}
+  .live .blip{width:8px;height:8px;border-radius:50%;background:var(--clear);box-shadow:0 0 10px var(--clear);animation:blink 1.4s infinite;}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+
+  .title{position:absolute;top:104px;left:56px;}
+  .title .e{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--teal);font-weight:600;}
+  .title h1{font-family:var(--display);font-weight:600;font-size:30px;letter-spacing:-.5px;margin-top:8px;}
+
+  /* pipeline */
+  .flow{position:absolute;top:206px;left:56px;right:56px;display:flex;align-items:flex-start;justify-content:space-between;}
+  .node{width:236px;position:relative;}
+  .card{border:1px solid var(--line);border-radius:16px;background:rgba(17,23,41,.85);padding:18px 18px 16px;
+    transition:all .45s cubic-bezier(.16,1,.3,1);position:relative;overflow:hidden;}
+  .card .acc{position:absolute;top:0;left:0;right:0;height:3px;background:var(--clr);opacity:.5;transition:opacity .4s;}
+  .card .top{display:flex;align-items:center;gap:11px;}
+  .card .dot{width:11px;height:11px;border-radius:50%;background:var(--clr);transition:box-shadow .4s;}
+  .card .nm{font-family:var(--display);font-weight:600;font-size:18px;}
+  .card .fw{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--faint);border:1px solid var(--line);border-radius:6px;padding:3px 7px;}
+  .card .role{margin-top:11px;font-size:13px;color:var(--muted);line-height:1.4;min-height:36px;}
+  .card .status{margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--faint);display:flex;align-items:center;gap:7px;height:14px;}
+  .card .status .sd{width:6px;height:6px;border-radius:50%;background:var(--faint);}
+  .node.active .card{border-color:var(--clr);background:rgba(20,30,52,.95);box-shadow:0 0 0 1px var(--clr),0 12px 40px rgba(0,0,0,.4);transform:translateY(-4px);}
+  .node.active .card .acc{opacity:1;}
+  .node.active .card .dot{box-shadow:0 0 14px var(--clr);animation:pulse 1.1s infinite;}
+  .node.active .status{color:var(--clr);} .node.active .status .sd{background:var(--clr);animation:blink 1s infinite;}
+  .node.done .card .dot{box-shadow:0 0 8px var(--clr);}
+  .node.done .status{color:var(--clear);} .node.done .status .sd{background:var(--clear);}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.35)}}
+
+  /* connectors */
+  .conn{position:absolute;top:248px;height:2px;background:var(--line);overflow:visible;}
+  .conn .tok{position:absolute;top:-4px;left:0;width:10px;height:10px;border-radius:50%;background:var(--teal);box-shadow:0 0 14px var(--teal);opacity:0;}
+  .conn.fire .tok{animation:travel 1.1s cubic-bezier(.5,0,.5,1) forwards;}
+  @keyframes travel{0%{opacity:1;left:0}90%{opacity:1}100%{opacity:0;left:100%}}
+  .conn.lit{background:linear-gradient(90deg,var(--teal),var(--line));}
+
+  /* artifact chips */
+  .art{position:absolute;font-family:var(--mono);font-size:12px;border-radius:9px;padding:7px 12px;
+    border:1px solid var(--clr);background:rgba(0,0,0,.3);color:var(--clr);opacity:0;transform:translateY(8px) scale(.9);
+    transition:all .5s cubic-bezier(.16,1,.3,1);display:flex;align-items:center;gap:7px;white-space:nowrap;}
+  .art.show{opacity:1;transform:translateY(0) scale(1);}
+  .art .ic{width:6px;height:6px;border-radius:50%;background:var(--clr);}
+
+  /* AI/ML API badge */
+  .aiml{position:absolute;top:376px;left:678px;display:flex;align-items:center;gap:11px;
+    border:1px solid var(--gold);border-radius:12px;padding:9px 16px;background:rgba(232,193,107,.07);
+    opacity:0;transition:opacity .5s;}
+  .aiml.show{opacity:1;}
+  .aiml.scoring{animation:glowg 1s infinite;}
+  @keyframes glowg{0%,100%{box-shadow:0 0 0 0 rgba(232,193,107,0)}50%{box-shadow:0 0 26px 2px rgba(232,193,107,.35)}}
+  .aiml .lbl{font-size:13px;color:var(--gold);font-weight:500;font-family:var(--display);}
+  .aiml .sc{font-family:var(--mono);font-size:13px;color:var(--muted);}
+  .aiml .sc b{color:var(--gold);font-weight:500;}
+
+  /* re-loop arc */
+  .reloop{position:absolute;top:300px;left:56px;right:56px;height:120px;pointer-events:none;opacity:0;transition:opacity .4s;}
+  .reloop.show{opacity:1;}
+  .reloop svg{width:100%;height:100%;overflow:visible;}
+  .reloop .lbl{position:absolute;top:96px;left:46%;font-size:12px;color:var(--risk);font-family:var(--mono);
+    border:1px solid rgba(247,178,92,.4);background:rgba(247,178,92,.08);border-radius:7px;padding:5px 11px;white-space:nowrap;}
+
+  /* room log */
+  .room{position:absolute;bottom:118px;left:56px;width:720px;border:1px solid var(--line-2);border-radius:14px;
+    background:#070A14;overflow:hidden;}
+  .roombar{display:flex;align-items:center;gap:7px;padding:11px 15px;border-bottom:1px solid var(--line);background:rgba(20,27,48,.6);}
+  .roombar .d{width:10px;height:10px;border-radius:50%;}
+  .roombar .fn{margin-left:8px;font-family:var(--mono);font-size:12px;color:var(--muted);}
+  .roomlog{padding:14px 18px;font-family:var(--mono);font-size:13px;line-height:1.65;height:118px;}
+  .msg{opacity:0;transform:translateY(6px);transition:all .4s;}
+  .msg.show{opacity:1;transform:translateY(0);}
+  .msg .who{font-weight:500;}
+  .msg .mn{color:var(--gold);} .msg .c{color:var(--faint);}
+
+  /* verdict stamp */
+  .verdict{position:absolute;bottom:150px;right:56px;width:404px;border:1px solid var(--line-2);border-radius:16px;
+    background:rgba(17,23,41,.9);padding:22px 24px;opacity:0;transform:scale(.92);transition:all .5s cubic-bezier(.16,1,.3,1);}
+  .verdict.show{opacity:1;transform:scale(1);}
+  .verdict.high{border-color:rgba(251,107,107,.5);background:rgba(251,107,107,.08);}
+  .verdict .vl{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
+  .verdict .row{display:flex;align-items:baseline;justify-content:space-between;margin-top:8px;}
+  .verdict .vv{font-family:var(--display);font-weight:700;font-size:40px;color:var(--crit);letter-spacing:-1px;}
+  .verdict .vf{font-size:14px;color:var(--muted);}
+  .verdict .bars{display:flex;gap:5px;margin-top:16px;}
+  .verdict .bars span{height:7px;border-radius:4px;flex:1;background:var(--line);transition:background .4s;}
+  .verdict.high .bars .b1,.verdict.high .bars .b2{background:var(--crit);}
+  .verdict.high .bars .b3,.verdict.high .bars .b4,.verdict.high .bars .b5{background:var(--risk);}
+  .verdict.high .bars .b6{background:var(--gap);}
+
+  /* progress */
+  .prog{position:absolute;bottom:46px;left:56px;right:56px;display:flex;align-items:center;gap:16px;}
+  .prog .track{flex:1;height:3px;border-radius:3px;background:var(--line);overflow:hidden;}
+  .prog .fill{height:100%;width:0;background:linear-gradient(90deg,var(--teal),var(--indigo));}
+  .prog .lab{font-family:var(--mono);font-size:11px;color:var(--faint);white-space:nowrap;}
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="grid"></div>
+
+  <div class="hd">
+    <div class="mark"><svg viewBox="0 0 44 48" fill="none"><path d="M22 2 L40 9 V24 C40 36 32 43 22 46 C12 43 4 36 4 24 V9 Z" fill="rgba(94,234,212,.10)" stroke="#5EEAD4" stroke-width="2"/><path d="M14 24 l6 6 l11 -13" stroke="#5EEAD4" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="w">Hire<b>Guard</b></span></div>
+    <div class="live"><span class="blip"></span>Live audit · Band room</div>
+  </div>
+
+  <div class="title"><div class="e">How it works</div><h1>Four agents audit a hiring packet — together.</h1></div>
+
+  <div class="flow">
+    <div class="node" id="n0" style="--clr:var(--teal)"><div class="card"><div class="acc"></div><div class="top"><span class="dot"></span><span class="nm">@Intake</span><span class="fw">LangGraph</span></div><div class="role">Reads the raw packet, extracts structured facts</div><div class="status"><span class="sd"></span><span class="st">idle</span></div></div></div>
+    <div class="node" id="n1" style="--clr:var(--indigo)"><div class="card"><div class="acc"></div><div class="top"><span class="dot"></span><span class="nm">@PolicyAgent</span><span class="fw">LangGraph</span></div><div class="role">Applies the ruleset, cites candidate violations</div><div class="status"><span class="sd"></span><span class="st">idle</span></div></div></div>
+    <div class="node" id="n2" style="--clr:var(--gold)"><div class="card"><div class="acc"></div><div class="top"><span class="dot"></span><span class="nm">@RiskScorer</span><span class="fw">CrewAI</span></div><div class="role">Scores legal exposure via the AI/ML API</div><div class="status"><span class="sd"></span><span class="st">idle</span></div></div></div>
+    <div class="node" id="n3" style="--clr:var(--clear)"><div class="card"><div class="acc"></div><div class="top"><span class="dot"></span><span class="nm">@Counsel</span><span class="fw">CrewAI</span></div><div class="role">Validates, de-dupes, writes the final memo</div><div class="status"><span class="sd"></span><span class="st">idle</span></div></div></div>
+  </div>
+
+  <div class="conn" id="c0" style="left:300px;width:64px"><span class="tok"></span></div>
+  <div class="conn" id="c1" style="left:600px;width:64px"><span class="tok"></span></div>
+  <div class="conn" id="c2" style="left:900px;width:64px"><span class="tok"></span></div>
+
+  <div class="art" id="a0" style="left:96px;top:386px;--clr:var(--teal)"><span class="ic"></span>facts.md written</div>
+  <div class="art" id="a1" style="left:404px;top:386px;--clr:var(--indigo)"><span class="ic"></span>6 candidate findings</div>
+  <div class="art" id="a3" style="left:1010px;top:386px;--clr:var(--clear)"><span class="ic"></span>audit.md sealed</div>
+
+  <div class="aiml" id="aiml"><span class="lbl">AI/ML API</span><span class="sc">scoring exposure · <b id="scoreval">0</b>/100</span></div>
+
+  <div class="reloop" id="reloop">
+    <svg viewBox="0 0 1168 120" preserveAspectRatio="none"><path d="M 884 12 C 884 96, 360 96, 360 24" fill="none" stroke="#F7B25C" stroke-width="2" stroke-dasharray="7 6"/><path d="M 360 24 l -7 9 M 360 24 l 7 9" stroke="#F7B25C" stroke-width="2" fill="none"/></svg>
+    <div class="lbl">@Counsel bounces a thin Critical back ↩</div>
+  </div>
+
+  <div class="room">
+    <div class="roombar"><span class="d" style="background:#FB6B6B"></span><span class="d" style="background:#F7B25C"></span><span class="d" style="background:#4ADE80"></span><span class="fn">band room · #hireguard-audit</span></div>
+    <div class="roomlog" id="roomlog"></div>
+  </div>
+
+  <div class="verdict" id="verdict"><div class="vl">Audit verdict</div><div class="row"><span class="vv">HIGH</span><span class="vf">6 cited findings</span></div><div class="bars"><span class="b1"></span><span class="b2"></span><span class="b3"></span><span class="b4"></span><span class="b5"></span><span class="b6"></span></div></div>
+
+  <div class="prog"><span class="lab" id="plab">extracting…</span><div class="track"><div class="fill" id="pfill"></div></div><span class="lab">audit.md</span></div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const TOTAL=17600;
+const MSGS=[
+  {who:'@Intake',clr:'--teal',body:' facts.md ready — 1 packet extracted.'},
+  {who:'@PolicyAgent',clr:'--indigo',body:' 6 candidate findings posted. <span class="c">→ <span class="mn">@RiskScorer</span></span>'},
+  {who:'@RiskScorer',clr:'--gold',body:' scored — overall verdict HIGH. <span class="c">→ <span class="mn">@Counsel</span></span>'},
+  {who:'@Counsel',clr:'--risk',body:' <span class="mn">@PolicyAgent</span> re-examine a thin Critical…'},
+  {who:'@Counsel',clr:'--clear',body:' audit complete — awaiting human sign-off.'},
+];
+let timers=[];
+function at(t,fn){timers.push(setTimeout(fn,t));}
+function setStatus(n,txt){const e=$( 'n'+n).querySelector('.st');if(e)e.textContent=txt;}
+function activate(n){$('n'+n).classList.remove('done');$('n'+n).classList.add('active');setStatus(n,'working…');}
+function finish(n){$('n'+n).classList.remove('active');$('n'+n).classList.add('done');setStatus(n,'done ✓');}
+function fireConn(c){const e=$('c'+c);e.classList.add('fire');at(0,()=>{});setTimeout(()=>e.classList.add('lit'),900);}
+function addMsg(i){const m=MSGS[i];const d=document.createElement('div');d.className='msg';
+  d.innerHTML='<span class="who" style="color:var('+m.clr+')">'+m.who+'</span>'+m.body;
+  $('roomlog').appendChild(d);requestAnimationFrame(()=>d.classList.add('show'));
+  const log=$('roomlog');while(log.children.length>4)log.removeChild(log.firstChild);}
+function tickScore(to,dur){const el=$('scoreval');let s=null;
+  function step(ts){if(s===null)s=ts;const p=Math.min(1,(ts-s)/dur);el.textContent=Math.round(p*to);if(p<1)requestAnimationFrame(step);}
+  requestAnimationFrame(step);}
+
+function reset(){
+  timers.forEach(clearTimeout);timers=[];
+  ['n0','n1','n2','n3'].forEach(id=>$(id).classList.remove('active','done'));
+  [0,1,2,3].forEach(n=>setStatus(n,'idle'));
+  ['c0','c1','c2'].forEach(id=>{$(id).classList.remove('fire','lit');});
+  ['a0','a1','a3'].forEach(id=>$(id).classList.remove('show'));
+  $('aiml').classList.remove('show','scoring');$('scoreval').textContent='0';
+  $('reloop').classList.remove('show');$('verdict').classList.remove('show','high');
+  $('roomlog').innerHTML='';$('pfill').style.transition='none';$('pfill').style.width='0%';
+  $('plab').textContent='extracting…';
+}
+
+function run(){
+  reset();
+  requestAnimationFrame(()=>{$('pfill').style.transition='width '+TOTAL+'ms linear';$('pfill').style.width='100%';});
+  at(500,()=>activate(0));
+  at(1700,()=>{$('a0').classList.add('show');addMsg(0);});
+  at(2500,()=>{finish(0);fireConn(0);});
+  at(3100,()=>{activate(1);$('plab').textContent='applying ruleset…';});
+  at(4500,()=>{$('a1').classList.add('show');addMsg(1);});
+  at(5400,()=>{finish(1);fireConn(1);});
+  at(6000,()=>{activate(2);$('aiml').classList.add('show','scoring');$('plab').textContent='scoring exposure…';tickScore(88,2200);});
+  at(8400,()=>{$('aiml').classList.remove('scoring');addMsg(2);});
+  at(8900,()=>{finish(2);fireConn(2);});
+  at(9500,()=>{activate(3);$('plab').textContent='reviewing…';});
+  at(10300,()=>{$('reloop').classList.add('show');addMsg(3);});
+  at(12300,()=>{$('reloop').classList.remove('show');$('plab').textContent='finalizing memo…';});
+  at(13000,()=>{$('a3').classList.add('show');addMsg(4);});
+  at(13700,()=>{finish(3);$('verdict').classList.add('show','high');$('plab').textContent='audit complete';});
+  at(TOTAL,run);
+}
+window.addEventListener('load',()=>setTimeout(run,400));
+</script>
+</body>
+</html>
