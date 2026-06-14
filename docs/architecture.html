@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0A0E1A; --line:rgba(148,163,184,.16); --line-2:rgba(148,163,184,.28);
+    --text:#F1F5F9; --muted:#9AA8BE; --faint:#6B7C93;
+    --teal:#5EEAD4; --indigo:#8B93F8; --gold:#E8C16B; --clear:#4ADE80;
+    --risk:#F7B25C;
+    --sans:'Inter',-apple-system,sans-serif; --display:'Space Grotesk',sans-serif; --mono:'JetBrains Mono',monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  html,body{width:1820px;height:600px;}
+  body{font-family:var(--sans);color:var(--text);overflow:hidden;position:relative;
+    background:radial-gradient(1000px 560px at 80% -12%,rgba(94,234,212,.12),transparent 60%),radial-gradient(900px 520px at 8% 120%,rgba(139,147,248,.12),transparent 58%),linear-gradient(180deg,#0A0E1A,#0B1020);}
+  .grid{position:absolute;inset:0;background-image:linear-gradient(rgba(148,163,184,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(148,163,184,.045) 1px,transparent 1px);background-size:48px 48px;mask-image:radial-gradient(1100px 560px at 50% 45%,#000 34%,transparent 84%);}
+  .eyebrow{position:absolute;left:56px;top:38px;font-family:var(--display);font-size:15px;font-weight:600;letter-spacing:.02em;color:var(--text);}
+  .eyebrow b{color:var(--teal);}
+  .eyebrow .sub{display:block;font-family:var(--sans);font-weight:400;font-size:13px;color:var(--faint);letter-spacing:.04em;margin-top:3px;}
+
+  svg.wires{position:absolute;inset:0;width:1820px;height:600px;z-index:1;}
+
+  .card{position:absolute;z-index:2;border-radius:16px;background:rgba(17,23,41,.92);border:1px solid var(--line-2);
+    box-shadow:0 14px 40px rgba(0,0,0,.34);overflow:hidden;}
+  .card .acc{height:3px;background:var(--clr);}
+  .card .body{padding:16px 18px;}
+  .top{display:flex;align-items:center;gap:10px;}
+  .dot{width:11px;height:11px;border-radius:50%;background:var(--clr);box-shadow:0 0 12px var(--clr);}
+  .nm{font-family:var(--display);font-weight:600;font-size:19px;}
+  .fw{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--faint);border:1px solid var(--line);border-radius:6px;padding:3px 7px;}
+  .role{margin-top:12px;font-size:13.5px;color:var(--muted);line-height:1.45;}
+
+  .io{position:absolute;z-index:2;width:184px;border-radius:14px;background:rgba(13,18,32,.92);border:1px solid var(--line-2);padding:16px 18px;}
+  .io .cap{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);margin-bottom:11px;}
+  .io .h{font-family:var(--display);font-weight:600;font-size:17px;margin-bottom:12px;display:flex;align-items:center;gap:9px;}
+  .io ul{list-style:none;display:flex;flex-direction:column;gap:9px;}
+  .io li{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:9px;}
+  .io li::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--clr);flex:none;}
+
+  .room-label{position:absolute;z-index:2;left:336px;top:170px;display:flex;align-items:center;gap:8px;
+    font-family:var(--mono);font-size:12px;color:var(--muted);}
+  .room-label .d{width:9px;height:9px;border-radius:50%;}
+
+  .pill{position:absolute;z-index:3;font-family:var(--mono);font-size:12px;border-radius:999px;padding:5px 12px;
+    background:#0B1020;border:1px solid var(--clr);color:var(--clr);white-space:nowrap;transform:translate(-50%,-50%);}
+
+  .aiml{position:absolute;z-index:3;transform:translateX(-50%);display:flex;align-items:center;gap:10px;
+    border:1px solid var(--gold);border-radius:12px;padding:10px 16px;background:rgba(232,193,107,.08);}
+  .aiml .l{font-family:var(--display);font-weight:600;font-size:14px;color:var(--gold);}
+  .aiml .s{font-family:var(--mono);font-size:12px;color:var(--muted);}
+
+  .reloop-label{position:absolute;z-index:3;left:910px;top:78px;transform:translateX(-50%);
+    font-family:var(--mono);font-size:12.5px;color:var(--risk);border:1px solid rgba(247,178,92,.4);
+    background:rgba(247,178,92,.09);border-radius:8px;padding:6px 14px;white-space:nowrap;}
+</style>
+</head>
+<body>
+<div class="grid"></div>
+<div class="eyebrow">HireGuard — <b>system architecture</b><span class="sub">four agents · two frameworks · one Band room</span></div>
+
+<svg class="wires" viewBox="0 0 1820 600" fill="none">
+  <defs>
+    <marker id="ah" markerWidth="9" markerHeight="9" refX="6" refY="4.5" orient="auto"><path d="M1,1 L7,4.5 L1,8" stroke="#7C8AA0" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></marker>
+    <marker id="ahg" markerWidth="9" markerHeight="9" refX="6" refY="4.5" orient="auto"><path d="M1,1 L7,4.5 L1,8" stroke="#F7B25C" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></marker>
+  </defs>
+  <!-- flow arrows, y=310 -->
+  <line x1="244" y1="310" x2="366" y2="310" stroke="#7C8AA0" stroke-width="2" marker-end="url(#ah)"/>
+  <line x1="576" y1="310" x2="662" y2="310" stroke="#7C8AA0" stroke-width="2" marker-end="url(#ah)"/>
+  <line x1="872" y1="310" x2="958" y2="310" stroke="#7C8AA0" stroke-width="2" marker-end="url(#ah)"/>
+  <line x1="1168" y1="310" x2="1254" y2="310" stroke="#7C8AA0" stroke-width="2" marker-end="url(#ah)"/>
+  <line x1="1526" y1="310" x2="1572" y2="310" stroke="#7C8AA0" stroke-width="2" marker-end="url(#ah)"/>
+  <!-- AI/ML connector from Risk card bottom (x1066,y405) down to badge -->
+  <line x1="1066" y1="406" x2="1066" y2="452" stroke="#E8C16B" stroke-width="2" stroke-dasharray="4 4"/>
+  <!-- re-loop arc: Counsel top (1362,210) -> Policy top (770,210) -->
+  <path d="M1362,208 C1362,108 770,108 770,206" stroke="#F7B25C" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#ahg)"/>
+</svg>
+
+<!-- Band room container -->
+<svg class="wires" viewBox="0 0 1820 600" style="z-index:0">
+  <rect x="312" y="150" width="1212" height="312" rx="22" fill="rgba(94,234,212,0.018)" stroke="rgba(148,163,184,0.22)" stroke-width="1.5" stroke-dasharray="2 0"/>
+</svg>
+<div class="room-label"><span class="d" style="background:#FB6B6B"></span><span class="d" style="background:#F7B25C"></span><span class="d" style="background:#4ADE80"></span>&nbsp;Band room · #hireguard-audit</div>
+
+<!-- input -->
+<div class="io" style="left:56px;top:236px;--clr:var(--teal)">
+  <div class="cap">Input</div>
+  <div class="h">Hiring packet</div>
+  <ul><li>Job posting</li><li>Compensation band</li><li>Interview scorecard</li></ul>
+</div>
+
+<!-- agents -->
+<div class="card" style="left:374px;top:216px;width:200px;--clr:var(--teal)"><div class="acc"></div><div class="body"><div class="top"><span class="dot"></span><span class="nm">@Intake</span><span class="fw">LangGraph</span></div><div class="role">Reads the packet, extracts structured facts</div></div></div>
+<div class="card" style="left:670px;top:216px;width:200px;--clr:var(--indigo)"><div class="acc"></div><div class="body"><div class="top"><span class="dot"></span><span class="nm">@PolicyAgent</span><span class="fw">LangGraph</span></div><div class="role">Applies the ruleset, cites candidate violations</div></div></div>
+<div class="card" style="left:966px;top:216px;width:200px;--clr:var(--gold)"><div class="acc"></div><div class="body"><div class="top"><span class="dot"></span><span class="nm">@RiskScorer</span><span class="fw">CrewAI</span></div><div class="role">Scores legal exposure per finding</div></div></div>
+<div class="card" style="left:1262px;top:216px;width:200px;--clr:var(--clear)"><div class="acc"></div><div class="body"><div class="top"><span class="dot"></span><span class="nm">@Counsel</span><span class="fw">CrewAI</span></div><div class="role">Validates, de-dupes, writes the final memo</div></div></div>
+
+<!-- output -->
+<div class="io" style="left:1580px;top:236px;--clr:var(--clear)">
+  <div class="cap">Output</div>
+  <div class="h">audit.md</div>
+  <ul><li>Verdict + cited findings</li><li>Quoted evidence</li><li>Human sign-off gate</li></ul>
+</div>
+
+<!-- artifact pills on arrows (y=310 line; pill sits centered on the line) -->
+<div class="pill" style="left:625px;top:286px;--clr:var(--teal);border-color:var(--teal);color:var(--teal)">facts.md</div>
+<div class="pill" style="left:921px;top:286px;--clr:var(--indigo);border-color:var(--indigo);color:var(--indigo)">+ findings</div>
+<div class="pill" style="left:1217px;top:286px;--clr:var(--gold);border-color:var(--gold);color:var(--gold)">risk.md</div>
+<div class="pill" style="left:1549px;top:286px;--clr:var(--clear);border-color:var(--clear);color:var(--clear)">audit.md</div>
+
+<!-- AI/ML API badge under RiskScorer -->
+<div class="aiml" style="left:1066px;top:452px"><span class="l">AI/ML API</span><span class="s">exposure scoring · 0–100 · load-bearing</span></div>
+
+<!-- re-loop label -->
+<div class="reloop-label">re-loop · @Counsel returns a thin Critical to @PolicyAgent</div>
+
+</body>
+</html>

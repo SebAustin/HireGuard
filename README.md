@@ -18,20 +18,7 @@ spanning two agent frameworks and routing their reasoning through the **AI/ML AP
 
 ## The collaboration (this is the demo)
 
-```
-   hiring packet
-        │
-        ▼
-   ┌──────────┐   facts.md   ┌──────────────┐  + findings  ┌──────────────┐   risk.md   ┌────────────┐   audit.md
-   │ @Intake  │─────────────▶│ @PolicyAgent │─────────────▶│  @RiskScorer │────────────▶│  @Counsel  │──────────▶ ✅ + human sign-off
-   │ LangGraph│              │  LangGraph   │              │   CrewAI     │             │   CrewAI   │
-   └──────────┘              └──────────────┘              └──────┬───────┘             └─────┬──────┘
-                                     ▲                            │                           │
-                                     │                       AI/ML API                        │
-                                     │                    (exposure scoring)                  │
-                                     └──────────────────────────────────────────────────────-┘
-                                       visible re-loop: @Counsel bounces a thin Critical back
-```
+![HireGuard architecture — the four-agent pipeline inside a Band room](docs/architecture.png)
 
 Two conventions make this work:
 
